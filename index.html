@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Content Refresh Prioritization: A Model-vs-Baseline Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --main: #2563EB;
+    --text: #111827;
+    --bg: #FAFAFA;
+    --accent: #10B981;
+    --muted: #6B7280;
+    --border: #E5E7EB;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.65;
+    font-size: 17px;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 64px 24px 120px; }
+
+  header.hero { margin-bottom: 56px; }
+  .eyebrow {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--main);
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: clamp(1.9rem, 4.2vw, 2.6rem);
+    line-height: 1.15;
+    color: var(--text);
+    margin-bottom: 18px;
+  }
+  .byline {
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+  .byline a { color: var(--main); text-decoration: none; }
+
+  h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 1.4rem;
+    color: var(--text);
+    margin-top: 52px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border);
+  }
+  h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    margin-top: 24px;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  p { margin-bottom: 14px; }
+  strong { color: var(--text); }
+  ul, ol { margin: 0 0 14px 22px; }
+  li { margin-bottom: 6px; }
+
+  .abstract-box {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--main);
+    border-radius: 6px;
+    padding: 22px 24px;
+    margin-bottom: 8px;
+  }
+  .abstract-box p:last-child { margin-bottom: 0; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 18px 0;
+    font-size: 0.92rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    background: #fff;
+    color: var(--text);
+  }
+  tr:last-child td { border-bottom: 2px solid var(--border); }
+  .highlight-row td { color: var(--main); font-weight: 600; }
+
+  .metric-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 18px 0 24px;
+  }
+  .metric-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    text-align: center;
+  }
+  .metric-card .num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--main);
+  }
+  .metric-card .label {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .chart-placeholder {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 24px;
+    margin: 18px 0;
+  }
+  .bar-chart { display: flex; align-items: flex-end; gap: 32px; height: 180px; padding-top: 16px; }
+  .bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+  .bar { width: 60%; border-radius: 4px 4px 0 0; position: relative; }
+  .bar .val {
+    position: absolute; top: -22px; left: 0; right: 0; text-align: center;
+    font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 0.85rem; color: var(--text);
+  }
+  .bar-label { margin-top: 8px; font-size: 0.82rem; color: var(--muted); text-align: center; }
+
+  .callout {
+    background: #F0FDF4;
+    border: 1px solid #A7F3D0;
+    border-radius: 6px;
+    padding: 16px 18px;
+    margin: 16px 0;
+    font-size: 0.95rem;
+  }
+  .callout.warn {
+    background: #FFFBEB;
+    border-color: #FDE68A;
+  }
+
+  code {
+    background: #F3F4F6;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.88em;
+    font-family: monospace;
+  }
+
+  footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-size: 0.88rem;
+    color: var(--muted);
+  }
+  footer a { color: var(--main); }
+
+  @media (max-width: 600px) {
+    .metric-cards { grid-template-columns: 1fr; }
+    .wrap { padding: 40px 18px 80px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">Research Paper &middot; FlyRank AI ML Internship</div>
+    <h1>Content Refresh Prioritization: Does a Learned Model Beat a Hand-Written Rule?</h1>
+    <div class="byline">Abdullah Bakr &middot; <a href="https://abdubakr77.github.io">abdubakr77.github.io</a></div>
+  </header>
+
+  <section id="abstract">
+    <h2>Abstract</h2>
+    <div class="abstract-box">
+      <p>Content teams need to know which pages to review first when review time is limited, but it is unclear whether a hand-written prioritization rule is good enough or whether a learned model is worth the added complexity. This paper builds a client-grouped, leakage-checked Random Forest classifier on a 30,000-page content dataset and compares it against a hand-written staleness-and-visibility baseline on the exact same test split. The model improved Precision@50 from 0.52 to 0.80 over the baseline. Permutation importance showed the model relies almost entirely on two signals, content age and visibility, with the staleness signal the baseline weighted heavily contributing near zero. The result is scoped as an observed, decision-support finding on one dataset and one split, not a causal or universal claim about rules versus models.</p>
+    </div>
+  </section>
+
+  <section id="introduction">
+    <h2>1. Introduction</h2>
+    <p>A recurring problem inside FlyRank's own content workflow is prioritization: given hundreds of pages and limited reviewer time each week, which pages should a content team look at first? A simple hand-written rule, flag pages that are both stale and still visible, is fast to build and easy to explain, but it is not obvious whether it captures the real pattern or misses interactions a more flexible model could find.</p>
+    <p>This paper treats that question directly: build a scoring model for the same task, validate it honestly, and compare it against the rule on the same data and the same metric, rather than reporting either number in isolation.</p>
+  </section>
+
+  <section id="data">
+    <h2>2. Data</h2>
+    <p>This study uses the local cached starter release: 30,000 pseudonymized content pages across 44 columns, covering search performance (Google Search Console fields), engagement (GA4-derived fields), and content metadata (age, word count, content type).</p>
+    <h3>What was excluded, and why</h3>
+    <ul>
+      <li>AI-referral and engagement columns (<code>ai_chatgpt</code>, <code>scroll_events</code>, and similar) were excluded from the feature set. An earlier data-contract audit found these columns roughly 69% populated, not missing, but they measure a different signal (AI-referral traffic) than the refresh-priority question this model targets.</li>
+      <li>Client and content identifiers were used only as grouping keys for the train/test split, never as model features, to avoid the model memorizing client identity instead of learning generalizable signal.</li>
+    </ul>
+    <div class="callout">No client names, private URLs, or query-level data appear anywhere in this paper. All figures reference anonymized, aggregate statistics only.</div>
+  </section>
+
+  <section id="methodology">
+    <h2>3. Methodology</h2>
+    <h3>Label</h3>
+    <p><code>trend_direction == 'down'</code> (binary), an outcome already present in the dataset, derived from a 30-day-vs-previous-30-day impression comparison. This is an observed label, not a rule defined for this study.</p>
+    <h3>Features</h3>
+    <p>15 features were used: search volume, competition, CPC, word count, 90-day impressions/clicks/sessions/engaged sessions/scroll events, content age, days since last update, CTR, average position, engagement rate, and scroll rate. <code>trend_pct</code> was deliberately excluded, it is derived from the same window that defines the label, and including it would constitute direct label leakage.</p>
+    <h3>Baseline</h3>
+    <p>A hand-written rule weighting visibility (log-scaled 90-day impressions) at 70% and staleness (days since last update) at 30%. This weighting followed a signal audit: visibility showed a consistent, monotonic relationship with decline (CONFIRMED), while staleness alone showed an inconsistent pattern across buckets (MIXED), so the rule leaned on the more reliable signal.</p>
+    <h3>Model</h3>
+    <p>A Random Forest classifier (200 trees, max depth 8), chosen because it can capture interactions between signals, such as staleness only mattering when visibility is also high, that a single linear rule cannot represent.</p>
+    <h3>Validation design</h3>
+    <p>Both the baseline and the model were evaluated with a <strong>client-grouped split</strong> (<code>GroupShuffleSplit</code> by client ID), not a random row split. This choice was tested directly: a naive random split inflated Precision@50 to 0.96 due to 27 clients appearing in both train and test; the honest grouped split, with zero client overlap, reports 0.80. The gap between those two numbers is the size of the leakage risk a casual split would have hidden.</p>
+    <h3>Leakage checks</h3>
+    <ul>
+      <li>Confirmed <code>trend_pct</code> excluded from all features.</li>
+      <li>Confirmed no client or content identifiers used as model inputs.</li>
+      <li>Flagged, but not yet fully resolved: <code>content_age_days</code>, the strongest feature by permutation importance, was not explicitly checked for correlation with the 30-day window used to define the label. Very new content could mechanically show inflated trend signals unrelated to genuine decline.</li>
+    </ul>
+  </section>
+
+  <section id="results">
+    <h2>4. Results</h2>
+    <p>Both methods were scored on the identical held-out test set (5,663 pages, zero client overlap with training data).</p>
+    <table>
+      <tr><th>Method</th><th>Precision@50</th><th>Client overlap</th></tr>
+      <tr><td>Hand-written baseline</td><td>0.52</td><td>0</td></tr>
+      <tr class="highlight-row"><td>Random Forest</td><td>0.80</td><td>0</td></tr>
+    </table>
+
+    <div class="chart-placeholder">
+      <div class="bar-chart">
+        <div class="bar-group">
+          <div class="bar" style="height: 65%; background: #9CA3AF;"><span class="val">0.52</span></div>
+          <div class="bar-label">Hand-written<br>baseline</div>
+        </div>
+        <div class="bar-group">
+          <div class="bar" style="height: 100%; background: #2563EB;"><span class="val">0.80</span></div>
+          <div class="bar-label">Random<br>Forest</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>Feature importance</h3>
+    <table>
+      <tr><th>Feature</th><th>Permutation importance</th></tr>
+      <tr class="highlight-row"><td>content_age_days</td><td>0.0387</td></tr>
+      <tr><td>impressions_90d</td><td>0.0198</td></tr>
+      <tr><td>avg_position</td><td>0.0050</td></tr>
+      <tr><td>scroll_rate</td><td>0.0018</td></tr>
+      <tr><td>word_count</td><td>0.0005</td></tr>
+    </table>
+    <p>Two signals, content age and visibility, account for nearly all of the model's predictive power. Notably, <code>days_since_last_update</code>, the signal the hand-written baseline weighted at 30%, contributed negatively in the trained model, matching its MIXED verdict from the earlier signal audit.</p>
+
+    <div class="metric-cards">
+      <div class="metric-card"><div class="num">510</div><div class="label">Pages flagged REVIEW</div></div>
+      <div class="metric-card"><div class="num">5,153</div><div class="label">Pages flagged MONITOR</div></div>
+      <div class="metric-card"><div class="num">~65%</div><div class="label">REVIEW pages actually declining</div></div>
+    </div>
+  </section>
+
+  <section id="limitations">
+    <h2>5. Limitations</h2>
+    <ul>
+      <li>Trained and validated on a single dataset snapshot; not yet tested across multiple months or the full warehouse release.</li>
+      <li><code>content_age_days</code> needs a follow-up correlation check against the label's time window before being treated as a fully clean signal.</li>
+      <li>Roughly a third of top-ranked REVIEW pages are trending stable or up, not down. A REVIEW flag is a prioritization signal, not a confirmed diagnosis.</li>
+      <li>This work shows correlation between signals and decline, not causation. It does not establish that refreshing a page causes traffic recovery.</li>
+    </ul>
+    <div class="callout warn">All claims in this paper use observed, measured, and decision-support language. No causal or universal claims are made.</div>
+  </section>
+
+  <section id="recommendations">
+    <h2>6. Ranked Recommendations</h2>
+    <p>The trained model's output was converted into a weekly content action playbook:</p>
+    <ul>
+      <li><strong>REVIEW</strong> (top 20% score, stale-or-visible reason code): a content editor opens the page and manually confirms the trend before acting.</li>
+      <li><strong>MONITOR</strong> (everything else): no action this cycle, re-scored next run.</li>
+    </ul>
+    <h3>Before acting, a human must:</h3>
+    <ul>
+      <li>Confirm the page is genuinely trending down, not just score-ranked, since the score can surface stable or improving pages.</li>
+      <li>Check whether the page belongs to a contractually sensitive client relationship.</li>
+      <li>Verify the page is not intentionally low-traffic by design.</li>
+    </ul>
+    <h3>Never automate without human sign-off:</h3>
+    <ul>
+      <li>Rewriting or deleting content based on the score alone.</li>
+      <li>Applying this model to a client not represented in the training data's mix.</li>
+      <li>Using REVIEW/MONITOR as a public-facing quality certification.</li>
+    </ul>
+    <h3>Retrain or re-audit triggers:</h3>
+    <ul>
+      <li>Precision@50 on a fresh sample drops meaningfully below 0.80.</li>
+      <li>The share of REVIEW pages actually declining falls well below the ~65% observed here.</li>
+      <li>A new content type, client segment, or major site redesign is introduced.</li>
+      <li>More than 3 months since the last validation, as a routine check.</li>
+    </ul>
+  </section>
+
+  <section id="reproducibility">
+    <h2>7. Reproducibility</h2>
+    <p>All code, notebooks, and committed metrics for this paper are public:</p>
+    <ul>
+      <li>Repository: <a href="https://github.com/abdubakr77/flyrank-ml-internship">github.com/abdubakr77/flyrank-ml-internship</a></li>
+      <li>Capstone notebook: <code>work/notebooks/capstone.ipynb</code></li>
+      <li>Data contract, signal audit, baseline, model, and validation audit notebooks: <code>work/notebooks/w03</code> through <code>w06</code></li>
+      <li>Exported metrics and figures: <code>work/outputs/</code>, <code>work/figures/</code></li>
+    </ul>
+  </section>
+
+  <footer>
+    <p>Built on the FlyRank ML Internship dataset. Data credit: <a href="https://flyrank.ai" target="_blank" rel="noopener">flyrank.ai</a></p>
+  </footer>
+
+</div>
+</body>
+</html>
