@@ -1,0 +1,7 @@
+{
+  "baseline_precision_at_50": 0.52,
+  "model_precision_at_50": 0.8,
+  "top_feature": "content_age_days",
+  "review_count": 510,
+  "monitor_count": 5153
+}
