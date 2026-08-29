@@ -1,0 +1,9 @@
+{
+  "total_pages_scored": 5663,
+  "review_count": 510,
+  "monitor_count": 5153,
+  "review_pct_actually_declining": 0.803921568627451,
+  "model_precision_at_50": 0.8,
+  "baseline_precision_at_50": 0.52,
+  "split_method": "GroupShuffleSplit by client_id, zero client overlap"
+}
